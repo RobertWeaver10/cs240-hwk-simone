@@ -6,7 +6,10 @@ let playButton = document.querySelector("#play");
 let gameStat= document.querySelector("#status");
 
 let Opener = ['red', 'yellow', 'blue', 'green', 'red', 'yellow', 'blue', 'green', 'red', 'yellow', 'blue', 'green'];
-let testSequence = [`blue`, `red`, `green`, `yellow`,`green`, `blue`, `red`, `yellow`];
+let testSequence = [
+    `blue`, `red`, `green`, `yellow`,`green`, `red`, `yellow`,
+    `blue`, `red`, `green`, `yellow`,`green`, `red`, `yellow`
+];
 
 function runOpeneingSequence(array){
     for (let i = 0; i < array.length; i++){
@@ -35,6 +38,7 @@ function runOpeneingSequence(array){
     }
 }
 
+//play button event listener that starts the game
 playButton.addEventListener(`click`, () => {
     let lastInput = ``;
     //event handlers for the blue game button
@@ -103,45 +107,74 @@ playButton.addEventListener(`click`, () => {
     runOpeneingSequence(Opener);
     //gonna have to edit here when i get the axios going
     let rounds = document.querySelector(`#rounds`).value; //gonna need to get the solution
-    let currentRound = 1;
-
+    //if rounds to play is not entered or not a positive/valid length then defaults to 10 rounds
     if(rounds < 1 || rounds == undefined){
         rounds = 10;
     }
-
-    setTimeout(() => { //creates 4 second delay after pressing start button
-        for(let gamelength = 0; gamelength < rounds; gamelength++){ //loop for whole game
-            
-            
-            for(let i = 0; i < currentRound; i++){ //for each round of the game
-                setTimeout(() => { //creates 400ms delay when showing the solution for the round
-                    if (testSequence[i] == `red`){ //check what the color of the sequence is and animate corresponding button
-                        (new Audio ("sounds/red.wav")).play();
-                        red.style.backgroundColor = "#ff69b4";
-                        setTimeout(() => {red.style.backgroundColor = "#ff0000"}, 200)
-                        console.log(`red`);
-                    }
-                    else if (testSequence[i] == `blue`){
-                        (new Audio ("sounds/blue.wav")).play();
-                        blue.style.backgroundColor = "#add8e6";
-                        setTimeout(() => {blue.style.backgroundColor = "#0000bb"}, 200)
-                        console.log(`blue`);
-                    }
-                    else if (testSequence[i] == `yellow`){
-                        (new Audio ("sounds/yellow.wav")).play();
-                        yellow.style.backgroundColor = "#ffff00";
-                        setTimeout(() => {yellow.style.backgroundColor = "#daa520"}, 200)
-                        console.log(`yellow`);
-                    }
-                    else {
-                        (new Audio ("sounds/green.wav")).play();
-                        green.style.backgroundColor = "#90ee90";
-                        setTimeout(() => {green.style.backgroundColor = "#228b22"}, 200)
-                        console.log(`green`);
-                    }
-                }, i * 400)
-            }
+    setTimeout(() => {
+        console.log("rounds being played: " + rounds);
+    let currentRound = 0;
+    /**
+     * uses currentRound and rounds, runs the local function to display the solution up to the
+     * position of the current round in the solution sequence, then will get user input and respond
+     * accordingly to whether the user was correct, incorrect, or won the game
+     */
+    function gameLoop(){
+        setTimeout(() => { //creates 800ms second delay inbetween rounds
+            let counter = 0; //counts how many buttons to press when displaying the solution each round
             /**
+             * checks the color of the solution sequence at counter and plays the solution sequence up
+             * to the number of rounds the user has completed.
+            */
+            function displaySol() {
+                    setTimeout(() => {
+                            if (testSequence[counter] == `red`){ //check what the color of the sequence is and animate corresponding button
+                                (new Audio ("sounds/red.wav")).play();
+                                red.style.backgroundColor = "#ff69b4";
+                                setTimeout(() => {red.style.backgroundColor = "#ff0000"}, 200)
+                                console.log(`red`);
+                            }
+                            else if (testSequence[counter] == `blue`){
+                                (new Audio ("sounds/blue.wav")).play();
+                                blue.style.backgroundColor = "#add8e6";
+                                setTimeout(() => {blue.style.backgroundColor = "#0000bb"}, 200)
+                                console.log(`blue`);
+                            }
+                            else if (testSequence[counter] == `yellow`){
+                                (new Audio ("sounds/yellow.wav")).play();
+                                yellow.style.backgroundColor = "#ffff00";
+                                setTimeout(() => {yellow.style.backgroundColor = "#daa520"}, 200)
+                                console.log(`yellow`);
+                            }
+                            else {
+                                (new Audio ("sounds/green.wav")).play();
+                                green.style.backgroundColor = "#90ee90";
+                                setTimeout(() => {green.style.backgroundColor = "#228b22"}, 200)
+                                console.log(`green`);
+                            }
+                        
+                        counter++;
+                        if(counter < currentRound){
+                            console.log("button " + counter + " of " + currentRound);
+                            displaySol();
+                        }
+                    }, 400);
+            }
+            displaySol();
+            console.log("round " + currentRound + " out of " + rounds);
+            currentRound++;
+            if(currentRound < rounds){
+                gameLoop();
+            }
+        }, 2000) //change this so that it is 800 (2000 for testing purposes)
+    }
+    gameLoop();
+    }, 4000);
+})
+
+
+
+/**
             for (let currentSpot = 0; currentSpot < currentRound; currentSpot++){ //loop through all the spots that we have reached
                 lastInput = ``;
                 let waitingInput = 0;
@@ -161,9 +194,3 @@ playButton.addEventListener(`click`, () => {
                 }
             }
             */
-           console.log(`round ` + currentRound + ` out of ` + rounds);
-           currentRound++;
-        }
-        
-    }, 4000)
-})
