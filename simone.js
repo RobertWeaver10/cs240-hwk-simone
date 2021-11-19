@@ -1,3 +1,6 @@
+const axios = require("axios");
+const headers = { headers: {Accept: "application/json"}};
+
 let blue = document.querySelector(".blue");
 let red = document.querySelector(".red");
 let yellow = document.querySelector(".yellow");
@@ -6,23 +9,52 @@ let playButton = document.querySelector("#play");
 let gameStat= document.querySelector("#status");
 let body = document.querySelector("body");
 
-let Opener = ['red', 'yellow', 'blue', 'green', 'red', 'yellow', 'blue', 'green', 'red', 'yellow', 'blue', 'green'];
-let testSequence = [`blue`, `blue`, `red`];
+let Opener;
+let testSequence;
+
+/**
+ * asynchronous function that gets the opening sequence from the api
+ */
+async function getOpeningSequence(){
+    try {
+        let openingSequence = await axios.get(`http://cs.pugetsound.edu/~dchiu/cs240/api/simone/?cmd=start`, headers)
+        Opener = openingSequence.data.sequence;
+        runOpeneingSequence(Opener);
+        console.log(Opener);
+    }
+    catch(error){
+        console.log(error);
+    }
+}
+
+/**
+ * asynchronous function that gets the sequence the player must repeat to win
+ */
+async function getGameSequence(numRounds){
+    try {
+        let gameSequence = await axios.get(`http://cs.pugetsound.edu/~dchiu/cs240/api/simone/?cmd=getSolution&rounds=${numRounds}`, headers);
+        testSequence = gameSequence.data.key;
+        console.log(testSequence);
+    }
+    catch(error){
+        console.log(error);
+    }
+}
 
 function runOpeneingSequence(array){
     for (let i = 0; i < array.length; i++){
         setTimeout(() => {
-            if (array[i] == `red`){
+            if (array[i] == `R`){
                 (new Audio ("sounds/red.wav")).play();
                 red.style.backgroundColor = "#ff69b4";
                 setTimeout(() => {red.style.backgroundColor = "#ff0000"}, 200)
             }
-            else if (array[i] == `blue`){
+            else if (array[i] == `B`){
                 (new Audio ("sounds/blue.wav")).play();
                 blue.style.backgroundColor = "#add8e6";
                 setTimeout(() => {blue.style.backgroundColor = "#0000bb"}, 200)
             }
-            else if (array[i] == `yellow`){
+            else if (array[i] == `Y`){
                 (new Audio ("sounds/yellow.wav")).play();
                 yellow.style.backgroundColor = "#ffff00";
                 setTimeout(() => {yellow.style.backgroundColor = "#daa520"}, 200)
@@ -38,14 +70,14 @@ function runOpeneingSequence(array){
 
 //play button event listener that starts the game
 playButton.addEventListener(`click`, () => {
-    let lastInput = ``;
-    runOpeneingSequence(Opener);
-    //gonna have to edit here when i get the axios going
     let rounds = document.querySelector(`#rounds`).value; //gonna need to get the solution
-    //if rounds to play is not entered or not a positive/valid length then defaults to 10 rounds
     if(rounds < 1 || rounds == undefined){
         rounds = 10;
     }
+    getOpeningSequence();
+    getGameSequence(rounds);
+    let lastInput = ``;
+    
     setTimeout(() => { //creates a 4 second delay after pressing the start button and starting the game
         console.log("rounds being played: " + rounds);
         let currentRound = 1; //keeps track of the current round of the game
@@ -59,19 +91,19 @@ playButton.addEventListener(`click`, () => {
             */
             function displaySol() {
                     setTimeout(() => {
-                            if (testSequence[counter] == `red`){ //check what the color of the sequence is and animate corresponding button
+                            if (testSequence[counter] == `R`){ //check what the color of the sequence is and animate corresponding button
                                 (new Audio ("sounds/red.wav")).play();
                                 red.style.backgroundColor = "#ff69b4";
                                 setTimeout(() => {red.style.backgroundColor = "#ff0000"}, 200)
                                 console.log(`red`);
                             }
-                            else if (testSequence[counter] == `blue`){
+                            else if (testSequence[counter] == `B`){
                                 (new Audio ("sounds/blue.wav")).play();
                                 blue.style.backgroundColor = "#add8e6";
                                 setTimeout(() => {blue.style.backgroundColor = "#0000bb"}, 200)
                                 console.log(`blue`);
                             }
-                            else if (testSequence[counter] == `yellow`){
+                            else if (testSequence[counter] == `Y`){
                                 (new Audio ("sounds/yellow.wav")).play();
                                 yellow.style.backgroundColor = "#ffff00";
                                 setTimeout(() => {yellow.style.backgroundColor = "#daa520"}, 200)
@@ -105,7 +137,7 @@ playButton.addEventListener(`click`, () => {
             blue.onmouseup = function() {
                 blue.style.backgroundColor = "#0000bb";
                 (new Audio("sounds/blue.wav")).play();
-                lastInput = `blue`;
+                lastInput = `B`;
                 if (currentButton < rounds + currentButton){                                            //only do this is while the game is playing
                     if (lastInput == testSequence[currentButton] && currentButton < rounds){            //the user is correct
                         console.log("you were correct");
@@ -115,7 +147,7 @@ playButton.addEventListener(`click`, () => {
                             currentButton = rounds + currentButton;
                             gameStat.innerHTML = "Congrats you won!";                                   //update the status
                             (new Audio("sounds/win.mp3")).play();                                       //play the win audio
-                            body.backgroundColor = "#00bfff";                                           //change the background color
+                            body.style.backgroundColor = "#00bfff";                                           //change the background color
                         }
                         else{                                                                           //the user has not won yet
                             console.log("you haven't won yet");
@@ -143,7 +175,7 @@ playButton.addEventListener(`click`, () => {
                         console.log("you were incorrect");
                         gameStat.innerHTML = "Incorrect! You lose";                                     //update status
                         (new Audio("sounds/lose.wav")).play();                                          //play the lose audio
-                        body.backgroundColor = "#ff69b4";                                               //change background color to pink
+                        body.style.backgroundColor = "#ff69b4";                                               //change background color to pink
                         currentButton = rounds + currentButton;                                         //so that no more inputs are registered
                         currentRound = rounds + currentRound;                                           //game is over
                     }
@@ -162,7 +194,7 @@ playButton.addEventListener(`click`, () => {
             red.onmouseup = function() {
                 (new Audio ("sounds/red.wav")).play();
                 red.style.backgroundColor = "#ff0000";
-                lastInput = `red`;
+                lastInput = `R`;
                 if (currentButton < rounds + currentButton){
                     if (lastInput == testSequence[currentButton] && currentButton < rounds){            //the user is correct
                         console.log("you were correct");
@@ -172,7 +204,7 @@ playButton.addEventListener(`click`, () => {
                             currentButton = rounds + currentButton;
                             gameStat.innerHTML = "Congrats you won!";                                   //update the status
                             (new Audio("sounds/win.mp3")).play();                                       //play the win audio
-                            body.backgroundColor = "#00bfff";                                           //change the background color
+                            body.style.backgroundColor = "#00bfff";                                           //change the background color
                         }
                         else{                                                                           //the user has not won yet
                             console.log("you haven't won yet");
@@ -200,7 +232,7 @@ playButton.addEventListener(`click`, () => {
                         console.log("you were incorrect");
                         gameStat.innerHTML = "Incorrect! You lose";                                     //update status
                         (new Audio("sounds/lose.wav")).play();                                          //play the lose audio
-                        body.backgroundColor = "#ff69b4";                                               //change background color to pink
+                        body.style.backgroundColor = "#ff69b4";                                               //change background color to pink
                         currentButton = rounds + currentButton;                                         //so that no more inputs are registered
                         currentRound = rounds + currentRound;                                           //game is over
                     }
@@ -220,7 +252,7 @@ playButton.addEventListener(`click`, () => {
             yellow.onmouseup = function() {
                 (new Audio ("sounds/yellow.wav")).play();
                 yellow.style.backgroundColor = "#daa520";
-                lastInput = `yellow`;
+                lastInput = `Y`;
                 if (currentButton < rounds + currentButton){
                     if (lastInput == testSequence[currentButton] && currentButton < rounds){            //the user is correct
                         console.log("you were correct");
@@ -230,7 +262,7 @@ playButton.addEventListener(`click`, () => {
                             currentButton = rounds + currentButton;
                             gameStat.innerHTML = "Congrats you won!";                                   //update the status
                             (new Audio("sounds/win.mp3")).play();                                       //play the win audio
-                            body.backgroundColor = "#00bfff";                                           //change the background color
+                            body.style.backgroundColor = "#00bfff";                                           //change the background color
                         }
                         else{                                                                           //the user has not won yet
                             console.log("you haven't won yet");
@@ -258,7 +290,7 @@ playButton.addEventListener(`click`, () => {
                         console.log("you were incorrect");
                         gameStat.innerHTML = "Incorrect! You lose";                                     //update status
                         (new Audio("sounds/lose.wav")).play();                                          //play the lose audio
-                        body.backgroundColor = "#ff69b4";                                               //change background color to pink
+                        body.style.backgroundColor = "#ff69b4";                                               //change background color to pink
                         currentButton = rounds + currentButton;                                         //so that no more inputs are registered
                         currentRound = rounds + currentRound;                                           //game is over
                     }
@@ -278,7 +310,7 @@ playButton.addEventListener(`click`, () => {
             green.onmouseup = function() {
                 (new Audio ("sounds/green.wav")).play();
                 green.style.backgroundColor = "#228b22";
-                lastInput = `green`;
+                lastInput = `G`;
                 if (currentButton < rounds + currentButton){
                     if (lastInput == testSequence[currentButton] && currentButton < rounds){            //the user is correct
                         console.log("you were correct");
@@ -288,7 +320,7 @@ playButton.addEventListener(`click`, () => {
                             currentButton = rounds + currentButton;
                             gameStat.innerHTML = "Congrats you won!";                                   //update the status
                             (new Audio("sounds/win.mp3")).play();                                       //play the win audio
-                            body.backgroundColor = "#00bfff";                                           //change the background color
+                            body.style.backgroundColor = "#00bfff";                                           //change the background color
                         }
                         else{                                                                           //the user has not won yet
                             console.log("you haven't won yet");
@@ -316,7 +348,7 @@ playButton.addEventListener(`click`, () => {
                         console.log("you were incorrect");
                         gameStat.innerHTML = "Incorrect! You lose";                                     //update status
                         (new Audio("sounds/lose.wav")).play();                                          //play the lose audio
-                        body.backgroundColor = "#ff69b4";                                               //change background color to pink
+                        body.style.backgroundColor = "#ff69b4";                                               //change background color to pink
                         currentButton = rounds + currentButton;                                         //so that no more inputs are registered
                         currentRound = rounds + currentRound;                                           //game is over
                     }
